@@ -125,6 +125,28 @@ def testPairings():
             "After one match, players with one win should be paired.")
     print "8. After one match, players with one win are paired."
 
+def testByes():
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Twilight Sparkle")
+    pairings = swissPairings()
+    if pairings[0][2] != '-404':
+         raise ValueError(
+            "Single player pairing should have bye")
+    reportBye(pairings[0][0])
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+    standings = playerStandings()
+    [id1, id2, id3, bye_id] = [row[0] for row in standings]
+    reportMatch(id2,id3)
+    pairings = swissPairings()
+    print pairings
+    for pair in pairings:
+        if pair[0] == '-404' or pair[0] == id1: 
+            if pair[2] == '-404' or pair[2] == id1:
+                raise ValueError(
+                    "Single player should not receive bye twice")    
+    print "9. Odd player received bye in from pairings"
 
 if __name__ == '__main__':
     testDeleteMatches()
@@ -135,6 +157,7 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
+    testByes()
     print "Success!  All tests pass!"
 
 

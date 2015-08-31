@@ -30,7 +30,7 @@ def countPlayers():
     """Returns the number of players currently registered."""
     db = connect()
     c = db.cursor()
-    c.execute("SELECT count(p.id) FROM players p;")
+    c.execute("SELECT count(p.id) FROM players p WHERE p.id != '-404';")
     result = c.fetchone()
     count = result[0]
     db.close()
@@ -49,9 +49,6 @@ def registerPlayer(name):
     c = db.cursor()
     c.execute("INSERT INTO players (name) VALUES (%s)", (bleach.clean(name),))
     print("Registered: "+name)
-    c.execute("SELECT count(p.id) FROM players p;")
-    result = c.fetchone()
-    count = result[0]
     db.commit()
     db.close()
 
@@ -85,10 +82,43 @@ def reportMatch(winner, loser):
     """
     db = connect()
     c = db.cursor()
-    c.execute("INSERT INTO matches (winner_id, loser_id) values (%s, %s);", (winner,loser))
+    c.execute("INSERT INTO matches (winner_id, loser_id) values (%s, %s);",
+              (winner,loser))
     db.commit()
     db.close
- 
+
+def reportBye(bye_player):
+    """Registers a bye for a given player. Bye id assigned as '-404'.
+
+    Args:
+      bye_player: player id receiving a bye. 
+
+    """
+    db = connect()
+    c = db.cursor()
+    c.execute("INSERT INTO players (id, name) VALUES ('-404','bye');")
+    c.execute("INSERT INTO matches (winner_id, loser_id) \
+                values ('%s', '-404');", (bye_player,))
+    db.commit()
+    db.close
+    
+def hasByes(player_id):
+    """Checks if a player has byes checking the DB for bye ids '-404'
+
+    Args:
+      player_id: player id of player in question
+
+    Returns: count of byes of player
+    """
+    db = connect()
+    c = db.cursor()
+    print(player_id)
+    byecount = c.execute("SELECT count(id) FROM matches WHERE winner_id = %s \
+                        and loser_id ='-404';", (player_id,))
+    db.close
+    return byecount
+
+
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
   
@@ -96,6 +126,8 @@ def swissPairings():
     appears exactly once in the pairings.  Each player is paired with another
     player with an equal or nearly-equal win record, that is, a player adjacent
     to him or her in the standings.
+
+    In cases where a bye is needed, bye is assigned id:'-404' name:'bye'
   
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
@@ -104,13 +136,28 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+
     standings = playerStandings()
     players = [(row[0], row[1]) for row in standings]
     pairings = []
+
+    # Bye condition for odd numbers of players
+    if len(players) % 2 != 0:
+        bye_index = len(players) - 1
+        bye_player = players.pop()
+        while (hasByes(bye_player[0]) > 0 and bye_index > 0):
+            players.insert(bye_index, byePlayer)
+            bye_index -= 1
+            bye_player = players.pop(bye_index)
+        pairings.insert(bye_index, (bye_player[0], bye_player[1], '-404', 'bye'))
+
     while (len(players) > 1):
         player1 = players.pop()
         player2 = players.pop()
         pairings.insert(0,(player1[0], player1[1], player2[0], player2[1]))
+
     return pairings
+
+
 
 
