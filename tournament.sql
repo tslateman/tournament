@@ -16,12 +16,6 @@ CREATE TABLE matches (
 	loser_id int references players(id)
 );
 
-CREATE VIEW winners AS (
-	SELECT winner_id, count(id) as wins
-	FROM matches
-	GROUP BY winner_id
-	ORDER BY wins DESC
-);
 CREATE VIEW losers AS (
 	SELECT loser_id, count(id) as losses
 	FROM matches
@@ -29,7 +23,7 @@ CREATE VIEW losers AS (
 	ORDER BY losses DESC
 );
 
-CREATE VIEW stats AS 
+CREATE VIEW stats AS (
 	SELECT p.id, p.name, count(m.winner_id) AS wins, count (m.id)  AS mcount
 	FROM players p
 	LEFT JOIN matches m ON p.id = m.winner_id 
@@ -39,11 +33,12 @@ CREATE VIEW stats AS
 	FROM players p, losers m
 	WHERE p.id = m.loser_id
 	GROUP BY p.id
-	ORDER BY wins DESC;
+	ORDER BY wins DESC
+);
 
-
-CREATE VIEW standings AS 
+CREATE VIEW standings AS (
 	SELECT id, name, SUM(wins) as wins, SUM(mcount) as mcount 
 	FROM stats
 	GROUP BY id, name
-	ORDER BY wins DESC;
+	ORDER BY wins DESC
+);

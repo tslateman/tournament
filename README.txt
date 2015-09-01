@@ -20,7 +20,14 @@ You should also have this README file, but it's not required to run.
 
 Instructions For Usage
 
-To view the webpage you will need to have Python installed first. 
+
+You will need to have Vagrant setup. For more help on that:
+
+https://www.udacity.com/wiki/ud197/install-vagrant
+
+Or you can use your own setup to support the database code. 
+
+To test the code you will need to have Python installed first. 
 This was created with 2.7.10, so if you want to match please select 
 that version and install on your machine. Then to run the program,
 navigate to the directory you saved the files and enter the following:

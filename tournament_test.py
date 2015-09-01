@@ -140,7 +140,6 @@ def testByes():
     [id1, id2, id3, bye_id] = [row[0] for row in standings]
     reportMatch(id2,id3)
     pairings = swissPairings()
-    print pairings
     for pair in pairings:
         if pair[0] == '-404' or pair[0] == id1: 
             if pair[2] == '-404' or pair[2] == id1:
