@@ -4,38 +4,38 @@
 #
 
 import psycopg2
-import bleach
 
-
-def connect():
+def connect(dbname="tournament"):
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    try:
+        db = psycopg2.connect("dbname={}".format(database_name))
+        cursor = db.cursor()
+        return db, cursor
+    except:
+        print("Database Connection Error")
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    db = connect()
-    c = db.cursor()
-    c.execute("DELETE FROM matches;")
+    db, cursor = connect()
+    cursor.execute("DELETE FROM matches;")
     db.commit()
     db.close()
 
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    db = connect()
-    c = db.cursor()
-    c.execute("DELETE FROM players;")
+    db, cursor = connect()
+    cursor.execute("DELETE FROM players;")
     db.commit()
     db.close()
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    db = connect()
-    c = db.cursor()
-    c.execute("SELECT count(p.id) FROM players p WHERE p.id != '-404';")
-    result = c.fetchone()
+    db, cursor = connect()
+    cursor.execute("SELECT count(p.id) FROM players p WHERE p.id != '-404';")
+    result = cursor.fetchone()
     count = result[0]
     db.close()
     return count
@@ -51,13 +51,12 @@ def registerPlayer(name):
       name: the player's full name (need not be unique).
     """
 
-    db = connect()
-    c = db.cursor()
-    c.execute("INSERT INTO players (name) VALUES (%s)", (bleach.clean(name),))
-    print("Registered: "+name)
+    db, cursor = connect()
+    query = "INSERT INTO players (name) VALUES (%s);"
+    parameter = (name,)
+    cursor.execute(query, parameter)
     db.commit()
     db.close()
-
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -73,10 +72,9 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
-    db = connect()
-    c = db.cursor()
-    c.execute("SELECT id, name, wins, mcount FROM standings ")
-    standings = [(row[0], row[1], row[2], row[3]) for row in c.fetchall()]
+    db, cursor = connect()
+    cursor.execute("SELECT id, name, wins, mcount FROM standings ")
+    standings = cursor.fetchall()
     db.close()
     return standings
 
@@ -88,12 +86,12 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    db = connect()
-    c = db.cursor()
-    c.execute("INSERT INTO matches (winner_id, loser_id) values (%s, %s);",
-              (winner, loser))
+    db, cursor = connect()
+    query = "INSERT INTO matches (winner_id, loser_id) values (%s, %s);"
+    parameters = (winner, loser)
+    cursor.execute(query, parameters)
     db.commit()
-    db.close
+    db.close()
 
 
 def reportBye(bye_player):
@@ -104,13 +102,15 @@ def reportBye(bye_player):
 
     """
 
-    db = connect()
-    c = db.cursor()
-    c.execute("INSERT INTO players (id, name) VALUES ('-404','bye');")
-    c.execute("INSERT INTO matches (winner_id, loser_id) \
-                values ('%s', '-404');", (bye_player,))
+    db, cursor = connect() 
+    query = "INSERT INTO players (id, name) VALUES ('-404','bye');"
+    cursor.execute(query)
+    
+    query = "INSERT INTO matches (winner_id, loser_id) values ('%s', '-404');"
+    parameter = (bye_player,)
+    cursor.execute(query, parameter)
     db.commit()
-    db.close
+    db.close()
 
 
 def hasByes(player_id):
@@ -122,12 +122,12 @@ def hasByes(player_id):
     Returns: count of byes of player
     """
 
-    db = connect()
-    c = db.cursor()
-    print(player_id)
-    byecount = c.execute("SELECT count(id) FROM matches WHERE winner_id = %s \
-                        and loser_id ='-404';", (player_id,))
-    db.close
+    db, cursor = connect()
+    query = "SELECT count(id) FROM matches WHERE winner_id = %s \
+                        and loser_id ='-404';"
+    parameter = (player_id,)
+    byecount = cursor.execute(query, parameter)
+    db.close()
     return byecount
 
 
