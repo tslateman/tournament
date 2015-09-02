@@ -5,10 +5,10 @@
 
 import psycopg2
 
-def connect(dbname="tournament"):
+def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     try:
-        db = psycopg2.connect("dbname={}".format(database_name))
+        db = psycopg2.connect("dbname=tournament")
         cursor = db.cursor()
         return db, cursor
     except:
