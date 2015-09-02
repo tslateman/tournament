@@ -20,12 +20,24 @@ You should also have this README file, but it's not required to run.
 
 Instructions For Usage
 
-
 You will need to have Vagrant setup. For more help on that:
 
 https://www.udacity.com/wiki/ud197/install-vagrant
 
-Or you can use your own setup to support the database code. 
+Once you have vagrant, you will need to type the following commands:
+
+vagrant up
+vagrant ssh
+
+This gets you to the virtual machine. From there you will need to 
+navigate to the synced home directory. Note, you might need to enter
+"cd ../../vagrant" depending on where you start.
+
+Once in the right directory, the sql setup can be run by entering:
+
+psql
+\i tournament.sql
+\q
 
 To test the code you will need to have Python installed first. 
 This was created with 2.7.10, so if you want to match please select 
